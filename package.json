@@ -1,0 +1,9 @@
+{
+  "name": "kinh-dich-ai",
+  "version": "1.0.0",
+  "description": "Kinh Dịch AI với Authentication",
+  "main": "index.html",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
