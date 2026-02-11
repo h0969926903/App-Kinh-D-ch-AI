@@ -3,636 +3,372 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Ứng dụng Kinh Dịch AI - Luận giải quẻ bằng trí tuệ nhân tạo">
-    <meta name="keywords" content="kinh dịch, bói toán, ai, trí tuệ nhân tạo">
-    <title>Kinh Dịch AI - Luận Giải Trí Tuệ</title>
+    <title>Kinh Dịch AI - Authenticated</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&display=swap');
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Crimson Text', serif;
-            background: linear-gradient(135deg, #fef5e7 0%, #fdeaa3 50%, #f8d7da 100%);
-            background-attachment: fixed;
-            min-height: 100vh;
-        }
-
-        .lotus-bg {
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(219, 39, 119, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 70%, rgba(167, 139, 250, 0.03) 0%, transparent 50%),
-                url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 15 C45 15 45 30 60 45 C75 30 75 15 60 15 M60 105 C45 105 45 90 60 75 C75 90 75 105 60 105 M15 60 C15 45 30 45 45 60 C30 75 15 75 15 60 M105 60 C105 45 90 45 75 60 C90 75 105 75 105 60' fill='none' stroke='%23dc2626' stroke-width='0.5' opacity='0.15'/%3E%3C/svg%3E");
-        }
-
+        body { font-family: 'Crimson Text', serif; background: linear-gradient(135deg, #fef5e7 0%, #fdeaa3 50%, #f8d7da 100%); background-attachment: fixed; min-height: 100vh; }
+        .lotus-bg { background-image: radial-gradient(circle at 20% 30%, rgba(219, 39, 119, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(167, 139, 250, 0.03) 0%, transparent 50%), url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 15 C45 15 45 30 60 45 C75 30 75 15 60 15 M60 105 C45 105 45 90 60 75 C75 90 75 105 60 105 M15 60 C15 45 30 45 45 60 C30 75 15 75 15 60 M105 60 C105 45 90 45 75 60 C90 75 105 75 105 60' fill='none' stroke='%23dc2626' stroke-width='0.5' opacity='0.15'/%3E%3C/svg%3E"); }
         .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
-        .header { text-align: center; margin-bottom: 2.5rem; padding-top: 2rem; position: relative; }
-        .header::before, .header::after { content: '🐉'; position: absolute; font-size: 3rem; opacity: 0.2; }
-        .header::before { left: 5%; top: 0; }
-        .header::after { content: '🦚'; right: 5%; top: 0; }
-        .title { font-size: 3.5rem; font-weight: 700; background: linear-gradient(90deg, #dc2626, #c2410c, #b91c1c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.75rem; }
-        .subtitle { font-size: 1.4rem; color: #7f1d1d; font-weight: 600; margin-bottom: 0.5rem; }
-        .description { font-size: 1rem; color: #92400e; font-style: italic; }
-        .card { background: white; border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 25px 60px rgba(185, 28, 28, 0.2); border: 5px solid; border-image: linear-gradient(135deg, #dc2626, #f59e0b, #dc2626) 1; margin-bottom: 2rem; position: relative; }
-        .card::before, .card::after { content: '🪷'; position: absolute; font-size: 2rem; opacity: 0.15; }
-        .card::before { top: 10px; left: 10px; }
-        .card::after { bottom: 10px; right: 10px; }
-        .card-header { font-size: 1.75rem; font-weight: 700; color: #7f1d1d; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 3px solid #fecaca; text-align: center; }
-        .form-group { margin-bottom: 2rem; }
-        .label { display: block; font-size: 1.25rem; font-weight: 700; color: #991b1b; margin-bottom: 0.75rem; }
-        .input, .textarea { width: 100%; padding: 1.25rem; border: 3px solid #fecaca; border-radius: 1rem; font-size: 1.125rem; font-family: 'Crimson Text', serif; transition: all 0.3s; }
-        .input:focus, .textarea:focus { outline: none; border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1); }
-        .input.error, .textarea.error { border-color: #dc2626; }
-        .textarea { min-height: 160px; resize: vertical; }
-        .hint { font-size: 0.875rem; color: #92400e; margin-top: 0.5rem; font-style: italic; }
-        .error-hint { color: #dc2626; font-weight: 600; }
-        .char-count { float: right; font-size: 0.875rem; color: #6b7280; }
-        .char-count.warning { color: #f59e0b; }
-        .char-count.error { color: #dc2626; }
+        .header { text-align: center; margin-bottom: 2rem; padding: 2rem 0; position: relative; }
+        .title { font-size: 3rem; font-weight: 700; background: linear-gradient(90deg, #dc2626, #c2410c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .subtitle { font-size: 1.3rem; color: #7f1d1d; font-weight: 600; }
         
+        /* Auth UI */
+        .auth-bar { display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem; }
+        .user-info { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.75rem 1.5rem; border-radius: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .credits-badge { background: linear-gradient(135deg, #fef3c7, #fde68a); padding: 0.5rem 1rem; border-radius: 1.5rem; font-weight: 700; color: #78350f; border: 2px solid #f59e0b; }
+        .btn { padding: 0.75rem 1.5rem; border-radius: 1rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.3s; font-size: 1rem; }
+        .btn-primary { background: linear-gradient(135deg, #dc2626, #f59e0b); color: white; }
+        .btn-secondary { background: #f3f4f6; color: #374151; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: white; border-radius: 1.5rem; padding: 2.5rem; max-width: 450px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
+        .modal-title { font-size: 2rem; font-weight: 700; color: #7f1d1d; margin-bottom: 1.5rem; text-align: center; }
+        .form-group { margin-bottom: 1.5rem; }
+        .label { display: block; font-size: 1.1rem; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem; }
+        .input { width: 100%; padding: 1rem; border: 3px solid #fecaca; border-radius: 1rem; font-size: 1rem; font-family: 'Crimson Text', serif; }
+        .input:focus { outline: none; border-color: #dc2626; }
+        .error { color: #dc2626; font-size: 0.9rem; margin-top: 0.5rem; }
+        .success { color: #059669; font-size: 0.9rem; margin-top: 0.5rem; }
+        
+        /* Card */
+        .card { background: white; border-radius: 1.5rem; padding: 2.5rem; box-shadow: 0 25px 60px rgba(185, 28, 28, 0.2); border: 5px solid; border-image: linear-gradient(135deg, #dc2626, #f59e0b, #dc2626) 1; margin-bottom: 2rem; }
+        .card-header { font-size: 1.75rem; font-weight: 700; color: #7f1d1d; margin-bottom: 1.5rem; text-align: center; border-bottom: 3px solid #fecaca; padding-bottom: 1rem; }
+        .textarea { width: 100%; padding: 1.25rem; border: 3px solid #fecaca; border-radius: 1rem; font-size: 1.1rem; font-family: 'Crimson Text', serif; min-height: 140px; resize: vertical; }
         .button-group { display: flex; gap: 1rem; margin-top: 1.5rem; }
-        .btn { padding: 1.5rem 2.5rem; border-radius: 1rem; font-weight: 700; font-size: 1.25rem; cursor: pointer; border: none; transition: all 0.3s; position: relative; }
-        .btn-primary { flex: 1; background: linear-gradient(135deg, #dc2626, #f59e0b); color: white; box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4); }
-        .btn-primary:hover:not(:disabled) { box-shadow: 0 15px 40px rgba(220, 38, 38, 0.5); transform: translateY(-3px); }
-        .btn-primary:disabled { background: #d1d5db; color: #9ca3af; cursor: not-allowed; box-shadow: none; }
-        .btn-secondary { padding: 1.5rem 2.5rem; background: linear-gradient(135deg, #f3f4f6, #e5e7eb); color: #374151; }
+        .btn-large { flex: 1; padding: 1.5rem; font-size: 1.25rem; border-radius: 1rem; }
         
-        /* Progress bar */
-        .progress-container { margin: 1.5rem 0; }
-        .progress-bar { width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
-        .progress-fill { height: 100%; background: linear-gradient(90deg, #dc2626, #f59e0b); transition: width 0.3s; }
-        .progress-text { text-align: center; margin-top: 0.5rem; font-size: 0.95rem; color: #6b7280; }
-        
-        .hexagram-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 2.5rem; }
-        .hexagram-card { padding: 2.5rem; border-radius: 1.5rem; border: 4px solid; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); text-align: center; }
+        /* Hexagram Display */
+        .hexagram-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin: 2rem 0; }
+        .hexagram-card { padding: 2rem; border-radius: 1.5rem; border: 4px solid; text-align: center; }
         .hexagram-main { background: linear-gradient(135deg, #fef2f2, #fed7aa); border-color: #dc2626; }
         .hexagram-changed { background: linear-gradient(135deg, #eff6ff, #e0e7ff); border-color: #3b82f6; }
-        .hexagram-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
         .hexagram-visual { margin: 1.5rem 0; display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
-        .hexagram-line { width: 80%; height: 12px; border-radius: 6px; transition: all 0.3s; }
-        .hexagram-line.yang { background: linear-gradient(90deg, #dc2626, #991b1b); box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3); }
+        .hexagram-line { width: 80%; height: 12px; border-radius: 6px; }
+        .hexagram-line.yang { background: linear-gradient(90deg, #dc2626, #991b1b); }
         .hexagram-line.yin { display: flex; gap: 8%; }
-        .hexagram-line.yin::before, .hexagram-line.yin::after { content: ''; flex: 1; background: linear-gradient(90deg, #1e40af, #1e3a8a); border-radius: 6px; box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3); }
-        .hexagram-line.changing { animation: pulse 1.5s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
-        .hexagram-name { font-size: 2.25rem; font-weight: 700; margin: 1rem 0; }
-        .hexagram-number { font-size: 1rem; color: #6b7280; background: rgba(255, 255, 255, 0.8); display: inline-block; padding: 0.5rem 1.25rem; border-radius: 1.5rem; margin: 0.5rem 0; border: 2px solid currentColor; }
-        .hexagram-meaning { color: #374151; margin: 1rem 0; font-size: 1.125rem; line-height: 1.6; }
-        .hexagram-tags { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
-        .tag { padding: 0.75rem 1.5rem; background: white; border-radius: 1.5rem; font-size: 1rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border: 2px solid currentColor; }
-        .extra-info { margin-top: 1.5rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.7); border-radius: 1rem; font-size: 0.95rem; line-height: 1.6; }
-        .extra-info-title { font-weight: 700; color: #7f1d1d; margin-bottom: 0.5rem; }
-        .changing-line { padding: 2rem; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 1.5rem; border: 4px solid #f59e0b; text-align: center; font-weight: 700; font-size: 1.5rem; color: #78350f; margin-bottom: 2.5rem; box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3); }
-        .interpretation { padding: 2.5rem; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 1.5rem; border-left: 6px solid #7c3aed; color: #1f2937; font-size: 1.25rem; line-height: 2.2; text-align: justify; white-space: pre-wrap; box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05); }
-        .note { margin-top: 2.5rem; padding: 2rem; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 1.5rem; border: 3px solid #f59e0b; }
-        .note-text { font-size: 1rem; color: #78350f; line-height: 1.8; }
-        .spinner { display: inline-block; width: 1.5rem; height: 1.5rem; border: 3px solid rgba(255, 255, 255, 0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .hexagram-line.yin::before, .hexagram-line.yin::after { content: ''; flex: 1; background: linear-gradient(90deg, #1e40af, #1e3a8a); border-radius: 6px; }
+        .hexagram-name { font-size: 2rem; font-weight: 700; margin: 1rem 0; }
+        .interpretation { padding: 2.5rem; background: linear-gradient(135deg, #faf5ff, #f3e8ff); border-radius: 1.5rem; border-left: 6px solid #7c3aed; font-size: 1.2rem; line-height: 2; white-space: pre-wrap; margin-top: 2rem; }
+        .spinner { display: inline-block; width: 1.5rem; height: 1.5rem; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.8s ease-out; }
-        .error-message { padding: 1.5rem; background: #fee2e2; border: 3px solid #dc2626; border-radius: 1rem; color: #991b1b; margin-top: 1rem; }
-        .success-badge { display: inline-block; padding: 0.5rem 1rem; background: #d1fae5; color: #065f46; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; margin-left: 1rem; }
-        .cache-badge { display: inline-block; padding: 0.25rem 0.75rem; background: #dbeafe; color: #1e40af; border-radius: 0.5rem; font-size: 0.75rem; margin-left: 0.5rem; }
-        
-        @media (max-width: 768px) { .title { font-size: 2.5rem; } .hexagram-grid { grid-template-columns: 1fr; } }
-        
-        /* Accessibility improvements */
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
-        *:focus-visible { outline: 3px solid #dc2626; outline-offset: 2px; }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .note { margin-top: 2rem; padding: 1.5rem; background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 1.5rem; border: 3px solid #f59e0b; color: #78350f; }
     </style>
 </head>
 <body class="lotus-bg">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useRef, useEffect, useCallback } = React;
+        const { useState, useEffect } = React;
 
-        // ✅ 6. CACHE UTILITY
-        const CacheManager = {
-            set: (key, value, ttl = 3600000) => { // 1 hour default
-                const item = {
-                    value,
-                    expires: Date.now() + ttl
-                };
-                try {
-                    localStorage.setItem(`cache_${key}`, JSON.stringify(item));
-                } catch (e) {
-                    console.error('Cache set error:', e);
-                }
-            },
-            get: (key) => {
-                try {
-                    const item = localStorage.getItem(`cache_${key}`);
-                    if (!item) return null;
-                    
-                    const parsed = JSON.parse(item);
-                    if (Date.now() > parsed.expires) {
-                        localStorage.removeItem(`cache_${key}`);
-                        return null;
-                    }
-                    return parsed.value;
-                } catch (e) {
-                    return null;
-                }
-            },
-            clear: () => {
-                try {
-                    Object.keys(localStorage).forEach(key => {
-                        if (key.startsWith('cache_')) {
-                            localStorage.removeItem(key);
-                        }
-                    });
-                } catch (e) {
-                    console.error('Cache clear error:', e);
-                }
-            }
+        // Supabase client
+        const supabase = window.supabase.createClient(
+            ' https://qqadeyowwdslkkuesdxg.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYWRleW93d2RzbGtrdWVzZHhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjQ4NTUsImV4cCI6MjA4NjE0MDg1NX0.2oa-3MO-IkITrrgtXY3PWBPrFw8y7C2b6zTO7HAR_zE'
+        );
+
+        const hexagrams = {
+            1: { name: 'Càn Vi Thiên', meaning: 'Quẻ thuần Dương', element: 'Kim', palace: 'Càn', shiYao: 4 },
+            2: { name: 'Khôn Vi Địa', meaning: 'Quẻ thuần Âm', element: 'Thổ', palace: 'Khôn', shiYao: 1 },
+            3: { name: 'Thủy Lôi Truân', meaning: 'Khó khăn ban đầu', element: 'Mộc', palace: 'Chấn', shiYao: 2 },
+            4: { name: 'Sơn Thủy Mông', meaning: 'Trẻ thơ mờ mịt', element: 'Thủy', palace: 'Khảm', shiYao: 3 },
+            5: { name: 'Thủy Thiên Nhu', meaning: 'Chờ đợi thời cơ', element: 'Thủy', palace: 'Càn', shiYao: 5 },
+            6: { name: 'Thiên Thủy Tụng', meaning: 'Tranh tụng', element: 'Kim', palace: 'Càn', shiYao: 5 },
+            7: { name: 'Địa Thủy Sư', meaning: 'Đội quân', element: 'Thủy', palace: 'Khôn', shiYao: 2 },
+            8: { name: 'Thủy Địa Tỷ', meaning: 'Thân cận', element: 'Thủy', palace: 'Khảm', shiYao: 5 },
+            9: { name: 'Phong Thiên Tiểu Súc', meaning: 'Súc dưỡng nhỏ', element: 'Mộc', palace: 'Càn', shiYao: 4 },
+            10: { name: 'Thiên Trạch Lý', meaning: 'Giẫm đuôi hổ', element: 'Kim', palace: 'Càn', shiYao: 3 },
+            11: { name: 'Địa Thiên Thái', meaning: 'Thông suốt', element: 'Thổ', palace: 'Khôn', shiYao: 3 },
+            12: { name: 'Thiên Địa Bĩ', meaning: 'Tắc nghẽn', element: 'Thổ', palace: 'Càn', shiYao: 3 },
+            13: { name: 'Thiên Hỏa Đồng Nhân', meaning: 'Đoàn kết', element: 'Hỏa', palace: 'Càn', shiYao: 5 },
+            14: { name: 'Hỏa Thiên Đại Hữu', meaning: 'Sở hữu lớn', element: 'Kim', palace: 'Ly', shiYao: 2 },
+            15: { name: 'Địa Sơn Khiêm', meaning: 'Khiêm tốn', element: 'Thổ', palace: 'Khôn', shiYao: 4 },
+            16: { name: 'Lôi Địa Dự', meaning: 'Vui vẻ', element: 'Thổ', palace: 'Chấn', shiYao: 1 },
+            17: { name: 'Trạch Lôi Tùy', meaning: 'Theo đuổi', element: 'Mộc', palace: 'Đoài', shiYao: 4 },
+            18: { name: 'Sơn Phong Cổ', meaning: 'Sửa chữa', element: 'Mộc', palace: 'Cấn', shiYao: 5 },
+            19: { name: 'Địa Trạch Lâm', meaning: 'Tiếp cận', element: 'Thổ', palace: 'Khôn', shiYao: 5 },
+            20: { name: 'Phong Địa Quan', meaning: 'Quan sát', element: 'Thổ', palace: 'Tốn', shiYao: 2 },
+            21: { name: 'Hỏa Lôi Phệ Hạp', meaning: 'Cắn đứt', element: 'Hỏa', palace: 'Chấn', shiYao: 4 },
+            22: { name: 'Sơn Hỏa Bí', meaning: 'Trang trí', element: 'Hỏa', palace: 'Ly', shiYao: 3 },
+            23: { name: 'Sơn Địa Bác', meaning: 'Bóc tróc', element: 'Thổ', palace: 'Khôn', shiYao: 6 },
+            24: { name: 'Địa Lôi Phục', meaning: 'Phục hồi', element: 'Mộc', palace: 'Chấn', shiYao: 4 },
+            25: { name: 'Thiên Lôi Vô Vọng', meaning: 'Không vọng động', element: 'Kim', palace: 'Càn', shiYao: 6 },
+            26: { name: 'Sơn Thiên Đại Súc', meaning: 'Súc dưỡng lớn', element: 'Kim', palace: 'Càn', shiYao: 6 },
+            27: { name: 'Sơn Lôi Di', meaning: 'Nuôi dưỡng', element: 'Mộc', palace: 'Cấn', shiYao: 1 },
+            28: { name: 'Trạch Phong Đại Quá', meaning: 'Quá mức', element: 'Mộc', palace: 'Đoài', shiYao: 5 },
+            29: { name: 'Khảm Vi Thủy', meaning: 'Thuần Thủy', element: 'Thủy', palace: 'Khảm', shiYao: 2 },
+            30: { name: 'Ly Vi Hỏa', meaning: 'Thuần Hỏa', element: 'Hỏa', palace: 'Ly', shiYao: 5 },
+            31: { name: 'Trạch Sơn Hàm', meaning: 'Cảm ứng', element: 'Kim', palace: 'Đoài', shiYao: 3 },
+            32: { name: 'Lôi Phong Hằng', meaning: 'Bền lâu', element: 'Mộc', palace: 'Chấn', shiYao: 5 },
+            33: { name: 'Thiên Sơn Độn', meaning: 'Rút lui', element: 'Kim', palace: 'Càn', shiYao: 3 },
+            34: { name: 'Lôi Thiên Đại Tráng', meaning: 'Mạnh lớn', element: 'Kim', palace: 'Chấn', shiYao: 4 },
+            35: { name: 'Hỏa Địa Tấn', meaning: 'Tiến lên', element: 'Hỏa', palace: 'Ly', shiYao: 1 },
+            36: { name: 'Địa Hỏa Minh Di', meaning: 'Ánh sáng tổn', element: 'Hỏa', palace: 'Khôn', shiYao: 2 },
+            37: { name: 'Phong Hỏa Gia Nhân', meaning: 'Gia đình', element: 'Hỏa', palace: 'Ly', shiYao: 3 },
+            38: { name: 'Hỏa Trạch Quỵ', meaning: 'Trái ngược', element: 'Hỏa', palace: 'Đoài', shiYao: 6 },
+            39: { name: 'Thủy Sơn Kiển', meaning: 'Khó khăn', element: 'Thủy', palace: 'Khảm', shiYao: 3 },
+            40: { name: 'Lôi Thủy Giải', meaning: 'Giải thoát', element: 'Thủy', palace: 'Chấn', shiYao: 2 },
+            41: { name: 'Sơn Trạch Tổn', meaning: 'Giảm bớt', element: 'Kim', palace: 'Đoài', shiYao: 2 },
+            42: { name: 'Phong Lôi Ích', meaning: 'Tăng ích', element: 'Mộc', palace: 'Chấn', shiYao: 1 },
+            43: { name: 'Trạch Thiên Quải', meaning: 'Quyết đoán', element: 'Kim', palace: 'Càn', shiYao: 4 },
+            44: { name: 'Thiên Phong Cấu', meaning: 'Gặp gỡ', element: 'Mộc', palace: 'Tốn', shiYao: 1 },
+            45: { name: 'Trạch Địa Tụy', meaning: 'Tụ họp', element: 'Thổ', palace: 'Đoài', shiYao: 3 },
+            46: { name: 'Địa Phong Thăng', meaning: 'Thăng tiến', element: 'Mộc', palace: 'Tốn', shiYao: 2 },
+            47: { name: 'Trạch Thủy Khốn', meaning: 'Cùng quẫn', element: 'Thủy', palace: 'Đoài', shiYao: 5 },
+            48: { name: 'Thủy Phong Tỉnh', meaning: 'Giếng nước', element: 'Mộc', palace: 'Khảm', shiYao: 4 },
+            49: { name: 'Trạch Hỏa Cách', meaning: 'Cách mạng', element: 'Hỏa', palace: 'Ly', shiYao: 5 },
+            50: { name: 'Hỏa Phong Đỉnh', meaning: 'Đỉnh nấu', element: 'Mộc', palace: 'Ly', shiYao: 4 },
+            51: { name: 'Chấn Vi Lôi', meaning: 'Thuần Lôi', element: 'Mộc', palace: 'Chấn', shiYao: 3 },
+            52: { name: 'Cấn Vi Sơn', meaning: 'Thuần Sơn', element: 'Thổ', palace: 'Cấn', shiYao: 6 },
+            53: { name: 'Phong Sơn Tiệm', meaning: 'Tiến dần', element: 'Mộc', palace: 'Cấn', shiYao: 5 },
+            54: { name: 'Lôi Trạch Quy Muội', meaning: 'Con gái về', element: 'Kim', palace: 'Chấn', shiYao: 6 },
+            55: { name: 'Lôi Hỏa Phong', meaning: 'Phong phú', element: 'Hỏa', palace: 'Chấn', shiYao: 4 },
+            56: { name: 'Hỏa Sơn Lữ', meaning: 'Khách lữ', element: 'Hỏa', palace: 'Cấn', shiYao: 4 },
+            57: { name: 'Tốn Vi Phong', meaning: 'Thuần Phong', element: 'Mộc', palace: 'Tốn', shiYao: 1 },
+            58: { name: 'Đoài Vi Trạch', meaning: 'Thuần Trạch', element: 'Kim', palace: 'Đoài', shiYao: 4 },
+            59: { name: 'Phong Thủy Hoán', meaning: 'Phân tán', element: 'Thủy', palace: 'Khảm', shiYao: 6 },
+            60: { name: 'Thủy Trạch Tiết', meaning: 'Tiết độ', element: 'Thủy', palace: 'Đoài', shiYao: 2 },
+            61: { name: 'Phong Trạch Trung Phu', meaning: 'Trung tín', element: 'Mộc', palace: 'Đoài', shiYao: 3 },
+            62: { name: 'Lôi Sơn Tiểu Quá', meaning: 'Vượt nhỏ', element: 'Mộc', palace: 'Cấn', shiYao: 6 },
+            63: { name: 'Thủy Hỏa Ký Tế', meaning: 'Đã hoàn thành', element: 'Thủy', palace: 'Khảm', shiYao: 3 },
+            64: { name: 'Hỏa Thủy Vị Tế', meaning: 'Chưa hoàn thành', element: 'Hỏa', palace: 'Ly', shiYao: 6 }
         };
 
+        const hexagramTable = [
+            [1,34,5,26,11,9,14,43],[25,51,3,27,24,42,21,17],
+            [6,40,29,4,7,59,64,47],[33,62,39,52,15,53,56,31],
+            [12,16,8,23,2,20,35,45],[44,32,48,18,46,57,50,28],
+            [13,55,63,22,36,37,30,49],[10,54,60,41,19,61,38,58]
+        ];
+
         function KinhDichApp() {
+            const [user, setUser] = useState(null);
+            const [showAuth, setShowAuth] = useState(false);
+            const [isLogin, setIsLogin] = useState(true);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [fullName, setFullName] = useState('');
+            const [authError, setAuthError] = useState('');
+            const [authSuccess, setAuthSuccess] = useState('');
+            const [profile, setProfile] = useState(null);
             const [datetime, setDatetime] = useState('');
             const [question, setQuestion] = useState('');
             const [hexagram, setHexagram] = useState(null);
             const [isCalculating, setIsCalculating] = useState(false);
             const [aiInterpretation, setAiInterpretation] = useState('');
             const [isLoadingAI, setIsLoadingAI] = useState(false);
-            const [loadingProgress, setLoadingProgress] = useState(0);
-            const [loadingStatus, setLoadingStatus] = useState('');
             const [error, setError] = useState('');
-            const [questionError, setQuestionError] = useState('');
-            const [isCached, setIsCached] = useState(false);
-            
-            // ✅ 8. DEBOUNCE REF
-            const debounceTimer = useRef(null);
 
-            const hexagrams = {
-                1: { name: 'Càn Vi Thiên', meaning: 'Quẻ thuần Dương, biểu tượng trời', element: 'Kim', palace: 'Càn', shiYao: 4 },
-                2: { name: 'Khôn Vi Địa', meaning: 'Quẻ thuần Âm, biểu tượng đất', element: 'Thổ', palace: 'Khôn', shiYao: 1 },
-                3: { name: 'Thủy Lôi Truân', meaning: 'Khó khăn ban đầu, kiên trì', element: 'Mộc', palace: 'Chấn', shiYao: 2 },
-                4: { name: 'Sơn Thủy Mông', meaning: 'Trẻ thơ mờ mịt, cần học', element: 'Thủy', palace: 'Khảm', shiYao: 3 },
-                5: { name: 'Thủy Thiên Nhu', meaning: 'Chờ đợi thời cơ', element: 'Thủy', palace: 'Càn', shiYao: 5 },
-                6: { name: 'Thiên Thủy Tụng', meaning: 'Tranh tụng, cần hòa giải', element: 'Kim', palace: 'Càn', shiYao: 5 },
-                7: { name: 'Địa Thủy Sư', meaning: 'Đội quân có kỷ luật', element: 'Thủy', palace: 'Khôn', shiYao: 2 },
-                8: { name: 'Thủy Địa Tỷ', meaning: 'Thân cận đoàn kết', element: 'Thủy', palace: 'Khảm', shiYao: 5 },
-                9: { name: 'Phong Thiên Tiểu Súc', meaning: 'Súc dưỡng nhỏ', element: 'Mộc', palace: 'Càn', shiYao: 4 },
-                10: { name: 'Thiên Trạch Lý', meaning: 'Giẫm đuôi hổ', element: 'Kim', palace: 'Càn', shiYao: 3 },
-                11: { name: 'Địa Thiên Thái', meaning: 'Thông suốt thịnh vượng', element: 'Thổ', palace: 'Khôn', shiYao: 3 },
-                12: { name: 'Thiên Địa Bĩ', meaning: 'Tắc nghẽn bế tắc', element: 'Thổ', palace: 'Càn', shiYao: 3 },
-                13: { name: 'Thiên Hỏa Đồng Nhân', meaning: 'Đoàn kết với người', element: 'Hỏa', palace: 'Càn', shiYao: 5 },
-                14: { name: 'Hỏa Thiên Đại Hữu', meaning: 'Sở hữu lớn lao', element: 'Kim', palace: 'Ly', shiYao: 2 },
-                15: { name: 'Địa Sơn Khiêm', meaning: 'Khiêm tốn hạ mình', element: 'Thổ', palace: 'Khôn', shiYao: 4 },
-                16: { name: 'Lôi Địa Dự', meaning: 'Vui vẻ hào hứng', element: 'Thổ', palace: 'Chấn', shiYao: 1 },
-                17: { name: 'Trạch Lôi Tùy', meaning: 'Theo đuổi linh hoạt', element: 'Mộc', palace: 'Đoài', shiYao: 4 },
-                18: { name: 'Sơn Phong Cổ', meaning: 'Sửa chữa cải tạo', element: 'Mộc', palace: 'Cấn', shiYao: 5 },
-                19: { name: 'Địa Trạch Lâm', meaning: 'Tiếp cận đến gần', element: 'Thổ', palace: 'Khôn', shiYao: 5 },
-                20: { name: 'Phong Địa Quan', meaning: 'Quan sát suy ngẫm', element: 'Thổ', palace: 'Tốn', shiYao: 2 },
-                21: { name: 'Hỏa Lôi Phệ Hạp', meaning: 'Cắn đứt chướng ngại', element: 'Hỏa', palace: 'Chấn', shiYao: 4 },
-                22: { name: 'Sơn Hỏa Bí', meaning: 'Trang trí văn chương', element: 'Hỏa', palace: 'Ly', shiYao: 3 },
-                23: { name: 'Sơn Địa Bác', meaning: 'Bóc tróc suy tàn', element: 'Thổ', palace: 'Khôn', shiYao: 6 },
-                24: { name: 'Địa Lôi Phục', meaning: 'Quay trở lại phục hồi', element: 'Mộc', palace: 'Chấn', shiYao: 4 },
-                25: { name: 'Thiên Lôi Vô Vọng', meaning: 'Không vọng động', element: 'Kim', palace: 'Càn', shiYao: 6 },
-                26: { name: 'Sơn Thiên Đại Súc', meaning: 'Súc dưỡng lớn', element: 'Kim', palace: 'Càn', shiYao: 6 },
-                27: { name: 'Sơn Lôi Di', meaning: 'Nuôi dưỡng sinh nhuận', element: 'Mộc', palace: 'Cấn', shiYao: 1 },
-                28: { name: 'Trạch Phong Đại Quá', meaning: 'Quá mức lớn lao', element: 'Mộc', palace: 'Đoài', shiYao: 5 },
-                29: { name: 'Khảm Vi Thủy', meaning: 'Thuần Thủy hiểm trở', element: 'Thủy', palace: 'Khảm', shiYao: 2 },
-                30: { name: 'Ly Vi Hỏa', meaning: 'Thuần Hỏa sáng rực', element: 'Hỏa', palace: 'Ly', shiYao: 5 },
-                31: { name: 'Trạch Sơn Hàm', meaning: 'Cảm ứng giao thoa', element: 'Kim', palace: 'Đoài', shiYao: 3 },
-                32: { name: 'Lôi Phong Hằng', meaning: 'Bền lâu trường cửu', element: 'Mộc', palace: 'Chấn', shiYao: 5 },
-                33: { name: 'Thiên Sơn Độn', meaning: 'Rút lui ẩn náu', element: 'Kim', palace: 'Càn', shiYao: 3 },
-                34: { name: 'Lôi Thiên Đại Tráng', meaning: 'Mạnh lớn hùng tráng', element: 'Kim', palace: 'Chấn', shiYao: 4 },
-                35: { name: 'Hỏa Địa Tấn', meaning: 'Tiến lên phát triển', element: 'Hỏa', palace: 'Ly', shiYao: 1 },
-                36: { name: 'Địa Hỏa Minh Di', meaning: 'Ánh sáng bị tổn', element: 'Hỏa', palace: 'Khôn', shiYao: 2 },
-                37: { name: 'Phong Hỏa Gia Nhân', meaning: 'Gia đình đoàn tụ', element: 'Hỏa', palace: 'Ly', shiYao: 3 },
-                38: { name: 'Hỏa Trạch Quỵ', meaning: 'Trái ngược xung khắc', element: 'Hỏa', palace: 'Đoài', shiYao: 6 },
-                39: { name: 'Thủy Sơn Kiển', meaning: 'Khó khăn chướng ngại', element: 'Thủy', palace: 'Khảm', shiYao: 3 },
-                40: { name: 'Lôi Thủy Giải', meaning: 'Giải thoát khai thông', element: 'Thủy', palace: 'Chấn', shiYao: 2 },
-                41: { name: 'Sơn Trạch Tổn', meaning: 'Giảm bớt tổn thương', element: 'Kim', palace: 'Đoài', shiYao: 2 },
-                42: { name: 'Phong Lôi Ích', meaning: 'Tăng ích lợi lộc', element: 'Mộc', palace: 'Chấn', shiYao: 1 },
-                43: { name: 'Trạch Thiên Quải', meaning: 'Quyết đoán dứt khoát', element: 'Kim', palace: 'Càn', shiYao: 4 },
-                44: { name: 'Thiên Phong Cấu', meaning: 'Gặp gỡ không ngờ', element: 'Mộc', palace: 'Tốn', shiYao: 1 },
-                45: { name: 'Trạch Địa Tụy', meaning: 'Tụ họp đoàn tụ', element: 'Thổ', palace: 'Đoài', shiYao: 3 },
-                46: { name: 'Địa Phong Thăng', meaning: 'Thăng tiến vươn lên', element: 'Mộc', palace: 'Tốn', shiYao: 2 },
-                47: { name: 'Trạch Thủy Khốn', meaning: 'Cùng quẫn khó khăn', element: 'Thủy', palace: 'Đoài', shiYao: 5 },
-                48: { name: 'Thủy Phong Tỉnh', meaning: 'Giếng nước trong lành', element: 'Mộc', palace: 'Khảm', shiYao: 4 },
-                49: { name: 'Trạch Hỏa Cách', meaning: 'Cách mạng đổi mới', element: 'Hỏa', palace: 'Ly', shiYao: 5 },
-                50: { name: 'Hỏa Phong Đỉnh', meaning: 'Đỉnh nấu ăn', element: 'Mộc', palace: 'Ly', shiYao: 4 },
-                51: { name: 'Chấn Vi Lôi', meaning: 'Thuần Lôi chấn động', element: 'Mộc', palace: 'Chấn', shiYao: 3 },
-                52: { name: 'Cấn Vi Sơn', meaning: 'Thuần Sơn ngừng lại', element: 'Thổ', palace: 'Cấn', shiYao: 6 },
-                53: { name: 'Phong Sơn Tiệm', meaning: 'Tiến dần từng bước', element: 'Mộc', palace: 'Cấn', shiYao: 5 },
-                54: { name: 'Lôi Trạch Quy Muội', meaning: 'Con gái về nhà chồng', element: 'Kim', palace: 'Chấn', shiYao: 6 },
-                55: { name: 'Lôi Hỏa Phong', meaning: 'Phong phú thịnh đại', element: 'Hỏa', palace: 'Chấn', shiYao: 4 },
-                56: { name: 'Hỏa Sơn Lữ', meaning: 'Khách lữ phiêu bạt', element: 'Hỏa', palace: 'Cấn', shiYao: 4 },
-                57: { name: 'Tốn Vi Phong', meaning: 'Thuần Phong thấm nhập', element: 'Mộc', palace: 'Tốn', shiYao: 1 },
-                58: { name: 'Đoài Vi Trạch', meaning: 'Thuần Trạch vui vẻ', element: 'Kim', palace: 'Đoài', shiYao: 4 },
-                59: { name: 'Phong Thủy Hoán', meaning: 'Phân tán tan rã', element: 'Thủy', palace: 'Khảm', shiYao: 6 },
-                60: { name: 'Thủy Trạch Tiết', meaning: 'Tiết độ chừng mực', element: 'Thủy', palace: 'Đoài', shiYao: 2 },
-                61: { name: 'Phong Trạch Trung Phu', meaning: 'Trung tín thành thật', element: 'Mộc', palace: 'Đoài', shiYao: 3 },
-                62: { name: 'Lôi Sơn Tiểu Quá', meaning: 'Vượt quá nhỏ', element: 'Mộc', palace: 'Cấn', shiYao: 6 },
-                63: { name: 'Thủy Hỏa Ký Tế', meaning: 'Đã hoàn thành', element: 'Thủy', palace: 'Khảm', shiYao: 3 },
-                64: { name: 'Hỏa Thủy Vị Tế', meaning: 'Chưa hoàn thành', element: 'Hỏa', palace: 'Ly', shiYao: 6 }
+            useEffect(() => {
+                checkUser();
+            }, []);
+
+            const checkUser = async () => {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    setUser(session.user);
+                    await fetchProfile(session.user.id);
+                }
             };
 
-            const hexagramTable = [
-                [1, 34, 5, 26, 11, 9, 14, 43], [25, 51, 3, 27, 24, 42, 21, 17],
-                [6, 40, 29, 4, 7, 59, 64, 47], [33, 62, 39, 52, 15, 53, 56, 31],
-                [12, 16, 8, 23, 2, 20, 35, 45], [44, 32, 48, 18, 46, 57, 50, 28],
-                [13, 55, 63, 22, 36, 37, 30, 49], [10, 54, 60, 41, 19, 61, 38, 58]
-            ];
+            const fetchProfile = async (userId) => {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+                if (data) setProfile(data);
+            };
 
-            const getTrigramIndex = (num) => num - 1;
+            const handleSignup = async (e) => {
+                e.preventDefault();
+                setAuthError('');
+                setAuthSuccess('');
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { full_name: fullName } }
+                });
+                if (error) setAuthError(error.message);
+                else {
+                    setAuthSuccess('Đăng ký thành công! Vui lòng kiểm tra email.');
+                    setTimeout(() => { setShowAuth(false); setIsLogin(true); }, 2000);
+                }
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setAuthError('');
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) setAuthError(error.message);
+                else {
+                    setUser(data.user);
+                    await fetchProfile(data.user.id);
+                    setShowAuth(false);
+                }
+            };
+
+            const handleLogout = async () => {
+                await supabase.auth.signOut();
+                setUser(null);
+                setProfile(null);
+                setHexagram(null);
+                setAiInterpretation('');
+            };
+
             const getHexagramLines = (hexNumber) => {
-                const hexBinary = {
-                    1: [1,1,1,1,1,1], 2: [0,0,0,0,0,0], 3: [1,0,0,0,1,0], 4: [0,1,0,0,0,1], 5: [0,1,0,1,1,1], 6: [1,1,1,0,1,0], 7: [0,1,0,0,0,0], 8: [0,0,0,0,1,0],
-                    9: [0,1,1,1,1,1], 10: [1,1,1,0,1,1], 11: [1,1,1,0,0,0], 12: [0,0,0,1,1,1], 13: [1,0,1,1,1,1], 14: [1,1,1,1,0,1], 15: [0,0,1,0,0,0], 16: [0,0,0,1,0,0],
-                    17: [1,0,0,0,0,1], 18: [1,0,0,1,1,0], 19: [0,0,0,0,1,1], 20: [1,1,0,0,0,0], 21: [1,0,1,0,0,1], 22: [1,0,0,1,0,1], 23: [1,0,0,0,0,0], 24: [0,0,0,0,0,1],
-                    25: [1,0,0,1,1,1], 26: [1,1,1,0,0,1], 27: [1,0,0,0,0,1], 28: [0,1,1,1,1,0], 29: [0,1,0,0,1,0], 30: [1,0,1,1,0,1], 31: [0,0,1,1,1,0], 32: [0,1,1,1,0,0],
-                    33: [0,0,1,1,1,1], 34: [1,1,1,1,0,0], 35: [0,0,0,1,0,1], 36: [1,0,1,0,0,0], 37: [1,0,1,0,1,1], 38: [1,1,0,1,0,1], 39: [0,0,1,0,1,0], 40: [0,1,0,1,0,0],
-                    41: [1,1,0,0,0,1], 42: [0,0,0,1,1,0], 43: [1,1,1,1,1,0], 44: [0,1,1,1,1,1], 45: [0,0,0,1,1,0], 46: [0,1,1,0,0,0], 47: [0,1,1,0,1,0], 48: [0,1,0,1,1,0],
-                    49: [1,0,1,0,1,1], 50: [1,1,0,1,0,1], 51: [0,0,1,0,0,1], 52: [1,0,0,1,0,0], 53: [0,0,1,1,1,0], 54: [0,1,1,0,0,1], 55: [1,0,1,0,0,1], 56: [1,0,0,1,0,1],
-                    57: [0,1,1,0,1,1], 58: [1,1,0,1,1,0], 59: [0,1,0,1,1,0], 60: [0,1,1,0,1,0], 61: [1,1,0,0,1,1], 62: [0,0,1,1,0,0], 63: [1,0,1,0,1,0], 64: [0,1,0,1,0,1]
-                };
+                const hexBinary = {1:[1,1,1,1,1,1],2:[0,0,0,0,0,0],3:[1,0,0,0,1,0],4:[0,1,0,0,0,1],5:[0,1,0,1,1,1],6:[1,1,1,0,1,0],7:[0,1,0,0,0,0],8:[0,0,0,0,1,0],9:[0,1,1,1,1,1],10:[1,1,1,0,1,1],11:[1,1,1,0,0,0],12:[0,0,0,1,1,1],13:[1,0,1,1,1,1],14:[1,1,1,1,0,1],15:[0,0,1,0,0,0],16:[0,0,0,1,0,0],17:[1,0,0,0,0,1],18:[1,0,0,1,1,0],19:[0,0,0,0,1,1],20:[1,1,0,0,0,0],21:[1,0,1,0,0,1],22:[1,0,0,1,0,1],23:[1,0,0,0,0,0],24:[0,0,0,0,0,1],25:[1,0,0,1,1,1],26:[1,1,1,0,0,1],27:[1,0,0,0,0,1],28:[0,1,1,1,1,0],29:[0,1,0,0,1,0],30:[1,0,1,1,0,1],31:[0,0,1,1,1,0],32:[0,1,1,1,0,0],33:[0,0,1,1,1,1],34:[1,1,1,1,0,0],35:[0,0,0,1,0,1],36:[1,0,1,0,0,0],37:[1,0,1,0,1,1],38:[1,1,0,1,0,1],39:[0,0,1,0,1,0],40:[0,1,0,1,0,0],41:[1,1,0,0,0,1],42:[0,0,0,1,1,0],43:[1,1,1,1,1,0],44:[0,1,1,1,1,1],45:[0,0,0,1,1,0],46:[0,1,1,0,0,0],47:[0,1,1,0,1,0],48:[0,1,0,1,1,0],49:[1,0,1,0,1,1],50:[1,1,0,1,0,1],51:[0,0,1,0,0,1],52:[1,0,0,1,0,0],53:[0,0,1,1,1,0],54:[0,1,1,0,0,1],55:[1,0,1,0,0,1],56:[1,0,0,1,0,1],57:[0,1,1,0,1,1],58:[1,1,0,1,1,0],59:[0,1,0,1,1,0],60:[0,1,1,0,1,0],61:[1,1,0,0,1,1],62:[0,0,1,1,0,0],63:[1,0,1,0,1,0],64:[0,1,0,1,0,1]};
                 return hexBinary[hexNumber] || [1,1,1,1,1,1];
             };
 
-            // ✅ 2. VALIDATE QUESTION
-            const validateQuestion = useCallback((q) => {
-                const trimmed = q.trim();
-                
-                if (trimmed.length < 5) {
-                    return 'Câu hỏi quá ngắn (tối thiểu 5 ký tự)';
-                }
-                
-                if (trimmed.length > 500) {
-                    return 'Câu hỏi quá dài (tối đa 500 ký tự)';
-                }
-                
-                return '';
-            }, []);
-
-            // Handle question change với validation
-            const handleQuestionChange = (e) => {
-                const value = e.target.value;
-                setQuestion(value);
-                
-                if (value.trim()) {
-                    const error = validateQuestion(value);
-                    setQuestionError(error);
-                } else {
-                    setQuestionError('');
-                }
-            };
-
             const calculateHexagram = () => {
-                // Validation
-                if (!datetime) {
-                    alert('Vui lòng chọn giờ động tâm!');
-                    return;
-                }
-                
-                const questionErr = validateQuestion(question);
-                if (questionErr) {
-                    setQuestionError(questionErr);
-                    alert(questionErr);
-                    return;
-                }
-
+                if (!datetime || !question) { alert('Vui lòng nhập đầy đủ!'); return; }
                 setIsCalculating(true);
-                setError('');
-
                 setTimeout(() => {
                     const date = new Date(datetime);
-                    const year = date.getFullYear();
-                    const month = date.getMonth() + 1;
-                    const day = date.getDate();
-                    const hour = date.getHours();
-                    const minute = date.getMinutes();
-
-                    const upperSum = (year + month + day) % 8;
-                    const upperTrigram = upperSum === 0 ? 8 : upperSum;
-                    const lowerSum = (year + month + day + hour) % 8;
-                    const lowerTrigram = lowerSum === 0 ? 8 : lowerSum;
-                    const changingLineSum = (year + month + day + hour + minute) % 6;
-                    const changingLine = changingLineSum === 0 ? 6 : changingLineSum;
-
-                    const mainHexNumber = hexagramTable[getTrigramIndex(upperTrigram)][getTrigramIndex(lowerTrigram)];
-                    const mainLines = getHexagramLines(mainHexNumber);
+                    const y = date.getFullYear(), m = date.getMonth()+1, d = date.getDate(), h = date.getHours(), min = date.getMinutes();
+                    const upper = ((y+m+d)%8)||8, lower = ((y+m+d+h)%8)||8, changing = ((y+m+d+h+min)%6)||6;
+                    const mainHexNum = hexagramTable[upper-1][lower-1];
+                    const mainLines = getHexagramLines(mainHexNum);
                     const changedLines = [...mainLines];
-                    changedLines[changingLine - 1] = 1 - changedLines[changingLine - 1];
-                    
-                    let changedHexNumber = mainHexNumber;
-                    for (let i = 1; i <= 64; i++) {
-                        const lines = getHexagramLines(i);
-                        if (JSON.stringify(lines) === JSON.stringify(changedLines)) {
-                            changedHexNumber = i;
-                            break;
-                        }
-                    }
-
-                    const mainHex = hexagrams[mainHexNumber];
-                    const changedHex = hexagrams[changedHexNumber];
-                    const yingYao = mainHex.shiYao <= 3 ? mainHex.shiYao + 3 : mainHex.shiYao - 3;
-
-                    setHexagram({
-                        mainHex: {...mainHex, lines: mainLines},
-                        mainHexNumber,
-                        changedHex: {...changedHex, lines: changedLines},
-                        changedHexNumber,
-                        changingLine,
-                        shiYao: mainHex.shiYao,
-                        yingYao,
-                        datetime: date.toLocaleString('vi-VN'),
-                        question: question.trim()
-                    });
+                    changedLines[changing-1] = 1-changedLines[changing-1];
+                    let changedHexNum = mainHexNum;
+                    for(let i=1;i<=64;i++){if(JSON.stringify(getHexagramLines(i))===JSON.stringify(changedLines)){changedHexNum=i;break;}}
+                    const mainHex = hexagrams[mainHexNum];
+                    const changedHex = hexagrams[changedHexNum];
+                    const yingYao = mainHex.shiYao<=3?mainHex.shiYao+3:mainHex.shiYao-3;
+                    setHexagram({mainHex:{...mainHex,lines:mainLines},mainHexNum,changedHex:{...changedHex,lines:changedLines},changedHexNum,changingLine:changing,shiYao:mainHex.shiYao,yingYao,datetime:date.toLocaleString('vi-VN'),question});
                     setIsCalculating(false);
-                }, 1000);
+                },800);
             };
 
-            // ✅ 3. RETRY LOGIC + ✅ 5. PROGRESS + ✅ 6. CACHING
             const getAIInterpretation = async () => {
-                if (!hexagram) return;
-
-                // Check cache
-                const cacheKey = `${hexagram.mainHexNumber}_${hexagram.changedHexNumber}_${hexagram.changingLine}_${hexagram.question}`;
-                const cached = CacheManager.get(cacheKey);
-                
-                if (cached) {
-                    setAiInterpretation(cached);
-                    setIsCached(true);
-                    return;
-                }
-
+                if(!user){alert('Vui lòng đăng nhập!');setShowAuth(true);return;}
+                if(profile?.credits_remaining<=0){alert('Bạn đã hết lượt bốc quẻ miễn phí!');return;}
                 setIsLoadingAI(true);
                 setError('');
-                setAiInterpretation('');
-                setIsCached(false);
-                setLoadingProgress(0);
-                setLoadingStatus('Đang kết nối với AI...');
-
-                const maxRetries = 3;
-                let lastError = null;
-
-                for (let attempt = 1; attempt <= maxRetries; attempt++) {
-                    try {
-                        setLoadingProgress(20 + (attempt - 1) * 10);
-                        setLoadingStatus(`Đang gửi yêu cầu (lần ${attempt}/${maxRetries})...`);
-
-                        const response = await fetch('/api/interpret', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                question: hexagram.question,
-                                datetime: hexagram.datetime,
-                                mainHexName: hexagram.mainHex.name,
-                                mainHexNumber: hexagram.mainHexNumber,
-                                mainHexPalace: hexagram.mainHex.palace,
-                                mainHexElement: hexagram.mainHex.element,
-                                changedHexName: hexagram.changedHex.name,
-                                changedHexNumber: hexagram.changedHexNumber,
-                                changingLine: hexagram.changingLine,
-                                shiYao: hexagram.shiYao,
-                                yingYao: hexagram.yingYao
-                            })
-                        });
-
-                        setLoadingProgress(50);
-                        setLoadingStatus('Đang nhận lời giải...');
-
-                        const data = await response.json();
-
-                        if (!response.ok) {
-                            // Nếu rate limit, đừng retry
-                            if (response.status === 429) {
-                                const waitTime = data.retryAfter || 60;
-                                setError(`${data.error || 'Vui lòng chờ'} ${waitTime}s`);
-                                setIsLoadingAI(false);
-                                return;
-                            }
-
-                            throw new Error(data.error || data.hint || 'Lỗi không xác định');
-                        }
-
-                        setLoadingProgress(100);
-                        setLoadingStatus('Hoàn tất!');
-
-                        const interpretation = data.interpretation;
-                        setAiInterpretation(interpretation);
-
-                        // Cache kết quả
-                        CacheManager.set(cacheKey, interpretation, 3600000); // 1 hour
-
-                        setIsLoadingAI(false);
-                        return; // Success, thoát khỏi loop
-
-                    } catch (error) {
-                        console.error(`Attempt ${attempt} failed:`, error);
-                        lastError = error.message;
-
-                        if (attempt < maxRetries) {
-                            const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s, 4s
-                            setLoadingStatus(`Lỗi, thử lại sau ${delay/1000}s...`);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                        }
-                    }
-                }
-
-                // Tất cả attempts failed
-                setError(lastError || 'Không thể kết nối. Vui lòng thử lại.');
-                setIsLoadingAI(false);
-                setLoadingProgress(0);
+                try{
+                    const res = await fetch('/api/interpret',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:hexagram.question,datetime:hexagram.datetime,mainHexName:hexagram.mainHex.name,mainHexNumber:hexagram.mainHexNum,mainHexPalace:hexagram.mainHex.palace,mainHexElement:hexagram.mainHex.element,changedHexName:hexagram.changedHex.name,changedHexNumber:hexagram.changedHexNum,changingLine:hexagram.changingLine,shiYao:hexagram.shiYao,yingYao:hexagram.yingYao})});
+                    const data = await res.json();
+                    if(!res.ok){setError(data.error||'Lỗi');return;}
+                    setAiInterpretation(data.interpretation);
+                    await fetchProfile(user.id);
+                }catch(e){setError('Lỗi: '+e.message);}finally{setIsLoadingAI(false);}
             };
 
-            // ✅ 8. DEBOUNCED VERSION
-            const getAIInterpretationDebounced = useCallback(() => {
-                if (debounceTimer.current) {
-                    clearTimeout(debounceTimer.current);
-                }
-
-                debounceTimer.current = setTimeout(() => {
-                    getAIInterpretation();
-                }, 300);
-            }, [hexagram]);
-
-            const reset = () => {
-                setDatetime('');
-                setQuestion('');
-                setQuestionError('');
-                setHexagram(null);
-                setAiInterpretation('');
-                setError('');
-                setIsCached(false);
-            };
-
-            const HexagramVisual = ({ lines, changingLine, isMain }) => (
-                <div className="hexagram-visual" role="img" aria-label={`Quẻ với ${lines.filter(l => l === 1).length} hào dương`}>
-                    {[...lines].reverse().map((line, index) => {
-                        const actualPosition = 6 - index;
-                        const isChanging = actualPosition === changingLine;
-                        return (
-                            <div 
-                                key={index}
-                                className={`hexagram-line ${line === 1 ? 'yang' : 'yin'} ${isChanging && isMain ? 'changing' : ''}`}
-                                title={`Hào ${actualPosition}: ${line === 1 ? 'Dương' : 'Âm'}${isChanging && isMain ? ' - ĐỘNG' : ''}`}
-                                role="presentation"
-                            />
-                        );
+            const HexagramVisual = ({lines,changingLine,isMain}) => (
+                <div className="hexagram-visual">
+                    {[...lines].reverse().map((line,i)=>{
+                        const pos=6-i;
+                        return <div key={i} className={`hexagram-line ${line===1?'yang':'yin'}`} title={`Hào ${pos}`}/>;
                     })}
                 </div>
             );
 
-            const charCount = question.length;
-            const charCountClass = charCount > 450 ? 'error' : charCount > 400 ? 'warning' : '';
-
             return (
                 <div className="container">
-                    <h1 className="sr-only">Kinh Dịch AI - Ứng dụng luận giải quẻ</h1>
-                    
-                    <div className="header">
-                        <div className="title" role="banner">🪷 Kinh Dịch AI 🪷</div>
-                        <p className="subtitle">
-                            Luận Giải Trí Tuệ 
-                            <span className="success-badge">✅ Improved</span>
-                        </p>
-                        <p className="description">64 Quẻ • Bảo Mật • Tối Ưu</p>
+                    <div className="auth-bar">
+                        {user ? (
+                            <div className="user-info">
+                                <span>👤 {profile?.email}</span>
+                                <span className="credits-badge">⚡ Còn {profile?.credits_remaining||0} lần</span>
+                                <button onClick={handleLogout} className="btn btn-secondary">Đăng xuất</button>
+                            </div>
+                        ) : (
+                            <button onClick={()=>setShowAuth(true)} className="btn btn-primary">Đăng nhập</button>
+                        )}
                     </div>
 
+                    <div className="header">
+                        <div className="title">🪷 Kinh Dịch AI 🪷</div>
+                        <div className="subtitle">Authenticated Version</div>
+                    </div>
+
+                    {showAuth && (
+                        <div className="modal-overlay" onClick={()=>setShowAuth(false)}>
+                            <div className="modal" onClick={e=>e.stopPropagation()}>
+                                <div className="modal-title">{isLogin?'Đăng nhập':'Đăng ký'}</div>
+                                <form onSubmit={isLogin?handleLogin:handleSignup}>
+                                    {!isLogin && (
+                                        <div className="form-group">
+                                            <label className="label">Họ tên</label>
+                                            <input className="input" value={fullName} onChange={e=>setFullName(e.target.value)} required/>
+                                        </div>
+                                    )}
+                                    <div className="form-group">
+                                        <label className="label">Email</label>
+                                        <input type="email" className="input" value={email} onChange={e=>setEmail(e.target.value)} required/>
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="label">Mật khẩu</label>
+                                        <input type="password" className="input" value={password} onChange={e=>setPassword(e.target.value)} required/>
+                                    </div>
+                                    {authError && <div className="error">{authError}</div>}
+                                    {authSuccess && <div className="success">{authSuccess}</div>}
+                                    <button type="submit" className="btn btn-primary btn-large">{isLogin?'Đăng nhập':'Đăng ký'}</button>
+                                    <div style={{textAlign:'center',marginTop:'1rem'}}>
+                                        <a href="#" onClick={e=>{e.preventDefault();setIsLogin(!isLogin);setAuthError('');}}>{isLogin?'Chưa có tài khoản? Đăng ký':'Đã có tài khoản? Đăng nhập'}</a>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="card">
-                        <h2 className="card-header">📿 Thông Tin Bốc Quẻ</h2>
-                        
+                        <div className="card-header">📿 Bốc Quẻ</div>
                         <div className="form-group">
-                            <label className="label" htmlFor="datetime-input">⏰ Giờ Động Tâm</label>
-                            <input
-                                id="datetime-input"
-                                type="datetime-local"
-                                value={datetime}
-                                onChange={(e) => setDatetime(e.target.value)}
-                                className="input"
-                                aria-required="true"
-                            />
-                            <p className="hint">Thời điểm chính xác khi câu hỏi xuất hiện</p>
+                            <label className="label">⏰ Giờ Động Tâm</label>
+                            <input type="datetime-local" className="input" value={datetime} onChange={e=>setDatetime(e.target.value)}/>
                         </div>
-
                         <div className="form-group">
-                            <label className="label" htmlFor="question-input">
-                                💭 Câu Hỏi
-                                <span className={`char-count ${charCountClass}`}>
-                                    {charCount}/500
-                                </span>
-                            </label>
-                            <textarea
-                                id="question-input"
-                                value={question}
-                                onChange={handleQuestionChange}
-                                placeholder="Trình bày câu hỏi cụ thể (5-500 ký tự)..."
-                                className={`textarea ${questionError ? 'error' : ''}`}
-                                aria-required="true"
-                                aria-invalid={!!questionError}
-                                aria-describedby={questionError ? "question-error" : "question-hint"}
-                            />
-                            {questionError ? (
-                                <p id="question-error" className="hint error-hint" role="alert">{questionError}</p>
-                            ) : (
-                                <p id="question-hint" className="hint">Câu hỏi chi tiết giúp AI luận giải chính xác hơn</p>
-                            )}
+                            <label className="label">💭 Câu Hỏi</label>
+                            <textarea className="textarea" value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Nhập câu hỏi..."/>
                         </div>
-
                         <div className="button-group">
-                            <button
-                                onClick={calculateHexagram}
-                                disabled={isCalculating || !!questionError}
-                                className="btn btn-primary"
-                                aria-label="Bốc quẻ"
-                            >
-                                {isCalculating ? <><span className="spinner" role="status"></span> Đang tính...</> : '🔮 Bốc Quẻ'}
+                            <button onClick={calculateHexagram} disabled={isCalculating} className="btn btn-primary btn-large">
+                                {isCalculating?<><span className="spinner"/> Đang tính...</>:'🔮 Bốc Quẻ'}
                             </button>
-                            <button onClick={reset} className="btn btn-secondary" aria-label="Làm lại từ đầu">
-                                🔄 Làm Lại
-                            </button>
+                            <button onClick={()=>{setHexagram(null);setAiInterpretation('');setDatetime('');setQuestion('');}} className="btn btn-secondary">🔄 Làm lại</button>
                         </div>
                     </div>
 
                     {hexagram && (
                         <div className="fade-in">
                             <div className="card">
-                                <h2 className="card-header">🎋 Quẻ Tượng</h2>
-                                
+                                <div className="card-header">🎋 Quẻ Tượng</div>
                                 <div className="hexagram-grid">
                                     <div className="hexagram-card hexagram-main">
-                                        <h3 className="hexagram-title" style={{color: '#dc2626'}}>🔴 Quẻ Chính</h3>
-                                        <HexagramVisual lines={hexagram.mainHex.lines} changingLine={hexagram.changingLine} isMain={true} />
-                                        <p className="hexagram-name" style={{color: '#991b1b'}}>{hexagram.mainHex.name}</p>
-                                        <p className="hexagram-number">Quẻ {hexagram.mainHexNumber}/64</p>
-                                        <p className="hexagram-meaning">{hexagram.mainHex.meaning}</p>
-                                        <div className="hexagram-tags">
-                                            <span className="tag" style={{color: '#dc2626'}}>{hexagram.mainHex.palace}</span>
-                                            <span className="tag" style={{color: '#c2410c'}}>{hexagram.mainHex.element}</span>
-                                        </div>
-                                        <div className="extra-info">
-                                            <div className="extra-info-title">📊 Chi Tiết:</div>
-                                            <div>• Thế: Hào {hexagram.shiYao}</div>
-                                            <div>• Ứng: Hào {hexagram.yingYao}</div>
-                                        </div>
+                                        <h3 style={{color:'#dc2626',marginBottom:'1rem'}}>🔴 Quẻ Chính</h3>
+                                        <HexagramVisual lines={hexagram.mainHex.lines} changingLine={hexagram.changingLine} isMain={true}/>
+                                        <div className="hexagram-name" style={{color:'#991b1b'}}>{hexagram.mainHex.name}</div>
+                                        <div>Quẻ {hexagram.mainHexNum}/64</div>
                                     </div>
-
                                     <div className="hexagram-card hexagram-changed">
-                                        <h3 className="hexagram-title" style={{color: '#3b82f6'}}>🔵 Quẻ Biến</h3>
-                                        <HexagramVisual lines={hexagram.changedHex.lines} changingLine={null} isMain={false} />
-                                        <p className="hexagram-name" style={{color: '#1e40af'}}>{hexagram.changedHex.name}</p>
-                                        <p className="hexagram-number">Quẻ {hexagram.changedHexNumber}/64</p>
-                                        <p className="hexagram-meaning">{hexagram.changedHex.meaning}</p>
-                                        <div className="hexagram-tags">
-                                            <span className="tag" style={{color: '#3b82f6'}}>{hexagram.changedHex.palace}</span>
-                                            <span className="tag" style={{color: '#6366f1'}}>{hexagram.changedHex.element}</span>
-                                        </div>
+                                        <h3 style={{color:'#3b82f6',marginBottom:'1rem'}}>🔵 Quẻ Biến</h3>
+                                        <HexagramVisual lines={hexagram.changedHex.lines} changingLine={null} isMain={false}/>
+                                        <div className="hexagram-name" style={{color:'#1e40af'}}>{hexagram.changedHex.name}</div>
+                                        <div>Quẻ {hexagram.changedHexNum}/64</div>
                                     </div>
                                 </div>
-
-                                <div className="changing-line">⚡ Hào Động: Hào {hexagram.changingLine}</div>
-
-                                {isLoadingAI && (
-                                    <div className="progress-container">
-                                        <div className="progress-bar">
-                                            <div className="progress-fill" style={{width: `${loadingProgress}%`}}></div>
-                                        </div>
-                                        <div className="progress-text">{loadingStatus}</div>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={getAIInterpretationDebounced}
-                                    disabled={isLoadingAI}
-                                    className="btn btn-primary"
-                                    style={{width: '100%', marginBottom: '1rem'}}
-                                    aria-label="Nhận lời giải từ AI"
-                                >
-                                    {isLoadingAI ? (
-                                        <><span className="spinner" role="status"></span> {loadingStatus}</>
-                                    ) : (
-                                        '🤖 Nhận Lời Giải'
-                                    )}
+                                <button onClick={getAIInterpretation} disabled={isLoadingAI || !user} className="btn btn-primary btn-large">
+                                    {isLoadingAI?<><span className="spinner"/> Đang luận giải...</>:'🤖 Nhận Lời Giải'}
                                 </button>
-
-                                {error && (
-                                    <div className="error-message" role="alert">
-                                        <strong>❌ {error}</strong>
-                                    </div>
-                                )}
+                                {error && <div className="error" style={{marginTop:'1rem'}}>{error}</div>}
                             </div>
-
                             {aiInterpretation && (
                                 <div className="card fade-in">
-                                    <h2 className="card-header" style={{color: '#7c3aed'}}>
-                                        📜 Lời Giải Chi Tiết
-                                        {isCached && <span className="cache-badge">📦 Từ cache</span>}
-                                    </h2>
-                                    <div className="interpretation" role="article">{aiInterpretation}</div>
-                                    <div className="note">
-                                        <p className="note-text">
-                                            <strong>💡 Lưu ý:</strong> Lời giải được bảo mật qua backend. 
-                                            Kết hợp với thực tế để quyết định tốt nhất.
-                                        </p>
-                                    </div>
+                                    <div className="card-header" style={{color:'#7c3aed'}}>📜 Lời Giải</div>
+                                    <div className="interpretation">{aiInterpretation}</div>
+                                    <div className="note">💡 Lời giải đã được lưu vào lịch sử của bạn.</div>
                                 </div>
                             )}
                         </div>
