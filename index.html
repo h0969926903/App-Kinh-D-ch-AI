@@ -70,14 +70,25 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // Supabase client
-        const { createClient } = window.supabase;
+        // Thay thế bằng thông tin Supabase thật của bạn
+        // Lưu ý: KHÔNG BAO GIỜ commit API key lên public repository
+        const supabaseUrl = "https://qqadeyowwdslkkuesdxg.supabase.co"; // THAY URL THẬT CỦA BẠN
+        const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxYWRleW93d2RzbGtrdWVzZHhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NjQ4NTUsImV4cCI6MjA4NjE0MDg1NX0.2oa-3MO-IkITrrgtXY3PWBPrFw8y7C2b6zTO7HAR_zE"; // THAY KEY THẬT CỦA BẠN
 
-const supabase = createClient(
-  "https://qqadeyowwdslkkuesdxg.supabase.co",
-  "sb_publishable_zoL3L3WvMp5svcenqJQ7ew_aexnJmK0"
-);
-
+        // Kiểm tra URL hợp lệ
+        let supabase;
+        try {
+            if (!supabaseUrl || supabaseUrl.includes('your-project')) {
+                console.error('Vui lòng cập nhật supabaseUrl và supabaseAnonKey trong code!');
+                supabase = null;
+            } else {
+                const { createClient } = window.supabase;
+                supabase = createClient(supabaseUrl, supabaseAnonKey);
+            }
+        } catch (error) {
+            console.error('Lỗi khởi tạo Supabase:', error);
+            supabase = null;
+        }
 
         const hexagrams = {
             1: { name: 'Càn Vi Thiên', meaning: 'Quẻ thuần Dương', element: 'Kim', palace: 'Càn', shiYao: 4 },
@@ -170,30 +181,47 @@ const supabase = createClient(
             const [aiInterpretation, setAiInterpretation] = useState('');
             const [isLoadingAI, setIsLoadingAI] = useState(false);
             const [error, setError] = useState('');
+            const [supabaseError, setSupabaseError] = useState(!supabase ? 'Vui lòng cấu hình Supabase trong code!' : '');
 
             useEffect(() => {
-                checkUser();
+                if (supabase) {
+                    checkUser();
+                }
             }, []);
 
             const checkUser = async () => {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
-                    setUser(session.user);
-                    await fetchProfile(session.user.id);
+                try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session?.user) {
+                        setUser(session.user);
+                        await fetchProfile(session.user.id);
+                    }
+                } catch (error) {
+                    console.error('Lỗi checkUser:', error);
+                    setSupabaseError('Không thể kết nối đến Supabase. Vui lòng kiểm tra cấu hình!');
                 }
             };
 
             const fetchProfile = async (userId) => {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userId)
-                    .single();
-                if (data) setProfile(data);
+                try {
+                    const { data, error } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', userId)
+                        .single();
+                    if (data) setProfile(data);
+                    if (error) console.error('Lỗi fetchProfile:', error);
+                } catch (error) {
+                    console.error('Lỗi fetchProfile:', error);
+                }
             };
 
             const handleSignup = async (e) => {
                 e.preventDefault();
+                if (!supabase) {
+                    setAuthError('Supabase chưa được cấu hình!');
+                    return;
+                }
                 setAuthError('');
                 setAuthSuccess('');
                 const { data, error } = await supabase.auth.signUp({
@@ -210,6 +238,10 @@ const supabase = createClient(
 
             const handleLogin = async (e) => {
                 e.preventDefault();
+                if (!supabase) {
+                    setAuthError('Supabase chưa được cấu hình!');
+                    return;
+                }
                 setAuthError('');
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) setAuthError(error.message);
@@ -221,6 +253,7 @@ const supabase = createClient(
             };
 
             const handleLogout = async () => {
+                if (!supabase) return;
                 await supabase.auth.signOut();
                 setUser(null);
                 setProfile(null);
@@ -259,130 +292,23 @@ const supabase = createClient(
                 if(profile?.credits_remaining<=0){alert('Bạn đã hết lượt bốc quẻ miễn phí!');return;}
                 setIsLoadingAI(true);
                 setError('');
-                try{
-                    const {data:{session}} = await supabase.auth.getSession();
-                    if(!session){alert('Phiên hết hạn. Vui lòng đăng nhập lại.');return;}
-                    const res = await fetch('/api/interpret',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},body:JSON.stringify({question:hexagram.question,datetime:hexagram.datetime,mainHexName:hexagram.mainHex.name,mainHexNumber:hexagram.mainHexNum,mainHexPalace:hexagram.mainHex.palace,mainHexElement:hexagram.mainHex.element,changedHexName:hexagram.changedHex.name,changedHexNumber:hexagram.changedHexNum,changingLine:hexagram.changingLine,shiYao:hexagram.shiYao,yingYao:hexagram.yingYao})});
-                    const data = await res.json();
-                    if(!res.ok){setError(data.error||'Lỗi');return;}
-                    setAiInterpretation(data.interpretation);
-                    await fetchProfile(user.id);
-                }catch(e){setError('Lỗi: '+e.message);}finally{setIsLoadingAI(false);}
-            };
+                
+                // Demo interpretation (vì không có API backend thật)
+                setTimeout(() => {
+                    setAiInterpretation(`🔮 LUẬN GIẢI CHO CÂU HỎI: "${hexagram.question}"
 
-            const HexagramVisual = ({lines,changingLine,isMain}) => (
-                <div className="hexagram-visual">
-                    {[...lines].reverse().map((line,i)=>{
-                        const pos=6-i;
-                        return <div key={i} className={`hexagram-line ${line===1?'yang':'yin'}`} title={`Hào ${pos}`}/>;
-                    })}
-                </div>
-            );
+⏰ Giờ động tâm: ${hexagram.datetime}
 
-            return (
-                <div className="container">
-                    <div className="auth-bar">
-                        {user ? (
-                            <div className="user-info">
-                                <span>👤 {profile?.email}</span>
-                                <span className="credits-badge">⚡ Còn {profile?.credits_remaining||0} lần</span>
-                                <button onClick={handleLogout} className="btn btn-secondary">Đăng xuất</button>
-                            </div>
-                        ) : (
-                            <button onClick={()=>setShowAuth(true)} className="btn btn-primary">Đăng nhập</button>
-                        )}
-                    </div>
+🎋 QUẺ CHÍNH: ${hexagram.mainHex.name} (số ${hexagram.mainHexNum}/64)
+- Ngũ hành: ${hexagram.mainHex.element}
+- Cung: ${hexagram.mainHex.palace}
+- Ý nghĩa: ${hexagram.mainHex.meaning}
+- Hào động: Hào ${hexagram.changingLine}
 
-                    <div className="header">
-                        <div className="title">🪷 Kinh Dịch AI 🪷</div>
-                        <div className="subtitle">Authenticated Version</div>
-                    </div>
+🔄 QUẺ BIẾN: ${hexagram.changedHex.name} (số ${hexagram.changedHexNum}/64)
+- Ngũ hành: ${hexagram.changedHex.element}
+- Cung: ${hexagram.changedHex.palace}
+- Ý nghĩa: ${hexagram.changedHex.meaning}
 
-                    {showAuth && (
-                        <div className="modal-overlay" onClick={()=>setShowAuth(false)}>
-                            <div className="modal" onClick={e=>e.stopPropagation()}>
-                                <div className="modal-title">{isLogin?'Đăng nhập':'Đăng ký'}</div>
-                                <form onSubmit={isLogin?handleLogin:handleSignup}>
-                                    {!isLogin && (
-                                        <div className="form-group">
-                                            <label className="label">Họ tên</label>
-                                            <input className="input" value={fullName} onChange={e=>setFullName(e.target.value)} required/>
-                                        </div>
-                                    )}
-                                    <div className="form-group">
-                                        <label className="label">Email</label>
-                                        <input type="email" className="input" value={email} onChange={e=>setEmail(e.target.value)} required/>
-                                    </div>
-                                    <div className="form-group">
-                                        <label className="label">Mật khẩu</label>
-                                        <input type="password" className="input" value={password} onChange={e=>setPassword(e.target.value)} required/>
-                                    </div>
-                                    {authError && <div className="error">{authError}</div>}
-                                    {authSuccess && <div className="success">{authSuccess}</div>}
-                                    <button type="submit" className="btn btn-primary btn-large">{isLogin?'Đăng nhập':'Đăng ký'}</button>
-                                    <div style={{textAlign:'center',marginTop:'1rem'}}>
-                                        <a href="#" onClick={e=>{e.preventDefault();setIsLogin(!isLogin);setAuthError('');}}>{isLogin?'Chưa có tài khoản? Đăng ký':'Đã có tài khoản? Đăng nhập'}</a>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="card">
-                        <div className="card-header">📿 Bốc Quẻ</div>
-                        <div className="form-group">
-                            <label className="label">⏰ Giờ Động Tâm</label>
-                            <input type="datetime-local" className="input" value={datetime} onChange={e=>setDatetime(e.target.value)}/>
-                        </div>
-                        <div className="form-group">
-                            <label className="label">💭 Câu Hỏi</label>
-                            <textarea className="textarea" value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Nhập câu hỏi..."/>
-                        </div>
-                        <div className="button-group">
-                            <button onClick={calculateHexagram} disabled={isCalculating} className="btn btn-primary btn-large">
-                                {isCalculating?<><span className="spinner"/> Đang tính...</>:'🔮 Bốc Quẻ'}
-                            </button>
-                            <button onClick={()=>{setHexagram(null);setAiInterpretation('');setDatetime('');setQuestion('');}} className="btn btn-secondary">🔄 Làm lại</button>
-                        </div>
-                    </div>
-
-                    {hexagram && (
-                        <div className="fade-in">
-                            <div className="card">
-                                <div className="card-header">🎋 Quẻ Tượng</div>
-                                <div className="hexagram-grid">
-                                    <div className="hexagram-card hexagram-main">
-                                        <h3 style={{color:'#dc2626',marginBottom:'1rem'}}>🔴 Quẻ Chính</h3>
-                                        <HexagramVisual lines={hexagram.mainHex.lines} changingLine={hexagram.changingLine} isMain={true}/>
-                                        <div className="hexagram-name" style={{color:'#991b1b'}}>{hexagram.mainHex.name}</div>
-                                        <div>Quẻ {hexagram.mainHexNum}/64</div>
-                                    </div>
-                                    <div className="hexagram-card hexagram-changed">
-                                        <h3 style={{color:'#3b82f6',marginBottom:'1rem'}}>🔵 Quẻ Biến</h3>
-                                        <HexagramVisual lines={hexagram.changedHex.lines} changingLine={null} isMain={false}/>
-                                        <div className="hexagram-name" style={{color:'#1e40af'}}>{hexagram.changedHex.name}</div>
-                                        <div>Quẻ {hexagram.changedHexNum}/64</div>
-                                    </div>
-                                </div>
-                                <button onClick={getAIInterpretation} disabled={isLoadingAI || !user} className="btn btn-primary btn-large">
-                                    {isLoadingAI?<><span className="spinner"/> Đang luận giải...</>:'🤖 Nhận Lời Giải'}
-                                </button>
-                                {error && <div className="error" style={{marginTop:'1rem'}}>{error}</div>}
-                            </div>
-                            {aiInterpretation && (
-                                <div className="card fade-in">
-                                    <div className="card-header" style={{color:'#7c3aed'}}>📜 Lời Giải</div>
-                                    <div className="interpretation">{aiInterpretation}</div>
-                                    <div className="note">💡 Lời giải đã được lưu vào lịch sử của bạn.</div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            );
-        }
-
-        ReactDOM.render(<KinhDichApp />, document.getElementById('root'));
-    </script>
-</body>
-</html>
+📜 LỜI GIẢI:
+Quẻ ${hexagram.mainHex.name} cho thấy ${hexagram.mainHex.meaning.toLowerCase()
